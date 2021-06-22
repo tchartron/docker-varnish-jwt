@@ -1,0 +1,9 @@
+version: '3.7'
+
+services:
+  varnish:
+    environments:
+      - APP_ENV=${APP_ENV:-dev}
+      - JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+      - JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+      - JWT_PASSPHRASE=cffe73a82715a4ff11b36ca7583284be

@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+  nginx:
+    # image: varnish:6.0
+    container_name: ${PROJECT_NAME:-app}_nginx
+    build:
+      context: ./
+      dockerfile: ./nginx/Dockerfile
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  php:
+    container_name: ${PROJECT_NAME:-app}_php
+    # command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/api_backend.conf"]
+    build:
+      context: ./
+      dockerfile: ./php/Dockerfile
+      args:
+        - PHP_VERSION=${PHP_VERSION:-8}
+        - ALPINE_VERSION=${ALPINE_VERSION:-3.12}
+        - APP_ENV=${APP_ENV:-dev}
+    restart: unless-stopped
+    depends_on:
+      - nginx
+    networks:
+      - app-network
+
+  varnish:
+    # image: varnish:6.0
+    container_name: ${PROJECT_NAME:-app}_varnish
+    build:
+      context: ./
+      dockerfile: ./varnish/Dockerfile
+    tmpfs: /var/lib/varnish:exec
+    restart: unless-stopped
+    environment:
+      # HOST: "nginx:80"
+      PUBLIC_KEY: |-
+          -----BEGIN PUBLIC KEY-----
+          ADD YOUR PUBLIC KEY
+          -----END PUBLIC KEY-----
+    ports:
+      - "8007:80"
+    depends_on:
+      - nginx
+      - php
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
