@@ -21,8 +21,10 @@ backend default {
 sub vcl_init {
   #JWT public key for token validation
   var.set("key", std.fileread("/etc/varnish/jwtRS256.key.pub"));
-  std.syslog(9, var.get("key"));
-  std.log(var.get("key"));
+  # std.syslog(9, var.get("key"));
+  # error 503 var.get("key");
+  # std.log(var.get("key"));
+  # std.log("HERE");
   # new v = crypto.verifier(sha256, std.getenv("PUBLIC_KEY"));
   new v = crypto.verifier(sha256, var.get("key"));
 }
@@ -31,7 +33,6 @@ sub vcl_init {
 sub vcl_recv {
   # Remove the "Forwarded" HTTP header if exists (security)
   unset req.http.forwarded;
-
   #bypass cache when no-cache or private header is present
   if (req.http.cache-control ~ "(no-cache|private)" ||
       req.http.pragma ~ "no-cache") {
@@ -44,10 +45,17 @@ sub vcl_recv {
     }
     return (purge);
   }
+  #Cookie parsing
+  cookie.parse(req.http.cookie);
+
+  #Deny all if no token provided
+  if (!cookie.isset("jwt_cookie") && (!req.http.Authorization || !req.http.Authorization ~ "Bearer")) {
+    # std.log("emptytoken:" + std.fileread("/etc/varnish/jwtRS256.key.pub"));
+    # std.log("v:" + v);
+    return (synth(401, "Please provide a JWT token"));
+  }
 
   #JWT
-  #Cookie
-  cookie.parse(req.http.cookie);
   if (cookie.isset("jwt_cookie")) {
     var.set("token", cookie.get("jwt_cookie"));
   }
@@ -56,9 +64,9 @@ sub vcl_recv {
     var.set("token", regsuball(req.http.Authorization, "Bearer ", ""));
   }
 
-  if (var.get("token") == "") {
-    return (synth(401, "Please provide a JWT token"));
-  }
+  # if (var.get("token") == "") {
+  #   return (synth(401, "Please provide a JWT token"));
+  # }
 
   set req.http.tmpHeader = regsub(var.get("token"),"([^\.]+)\.[^\.]+\.[^\.]+","\1");
   set req.http.tmpTyp = regsub(digest.base64_decode(req.http.tmpHeader),{"^.*?"typ"\s*:\s*"(\w+)".*?$"},"\1");

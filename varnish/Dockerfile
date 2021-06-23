@@ -70,3 +70,7 @@ RUN cd /usr/local/src/ && \
 
 COPY varnish/default.vcl /etc/varnish/default.vcl
 COPY varnish/keys/jwtRS256.key.pub /etc/varnish/jwtRS256.key.pub
+
+COPY varnish/entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
