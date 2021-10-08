@@ -13,7 +13,6 @@ services:
 
   php:
     container_name: ${PROJECT_NAME:-app}_php
-    # command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/api_backend.conf"]
     build:
       context: ./
       dockerfile: ./php/Dockerfile
