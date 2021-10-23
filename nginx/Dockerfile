@@ -1,6 +1,6 @@
 FROM nginx:stable-alpine
 
-ENV APP_HOME /var/www/html
+ENV APP_HOME /var/www
 
 # Configure nginx
 RUN rm /etc/nginx/conf.d/default.conf
