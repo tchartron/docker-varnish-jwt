@@ -3,7 +3,7 @@ ARG ALPINE_VERSION=3.12
 
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
-ENV APP_HOME /var/www/html
+ENV APP_HOME /var/www
 
 
 # RUN ls -al /usr/local/lib/php/extensions/
@@ -57,13 +57,12 @@ COPY php/php-cli.ini /usr/local/etc/php/php-cli.ini
 # Setup document root
 RUN mkdir -p $APP_HOME
 
-# Add application
 WORKDIR $APP_HOME
 
 # install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN chmod +x /usr/bin/composer
-ENV COMPOSER_ALLOW_SUPERUSER 1
+#ENV COMPOSER_ALLOW_SUPERUSER 1
 
 # Configure entrypoint
 # COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
@@ -77,4 +76,4 @@ COPY --chown=www-data ./public $APP_HOME/public
 
 # VOLUME $APP_HOME/var
 
-USER root
+#USER root
